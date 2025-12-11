@@ -2,6 +2,7 @@ from flask import Flask,render_template,request,url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
+import os
 
 
 
@@ -12,13 +13,18 @@ local_server = True
 db = SQLAlchemy()
 
 app = Flask(__name__,template_folder='template')
-if(local_server==True):
+
+# Use environment variable for database URI if provided (for Docker)
+db_uri = os.environ.get('DATABASE_URI')
+if db_uri:
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
+elif(local_server==True):
     #Replace the ip_address and cloud instance and db name accordingly.
     app.config["SQLALCHEMY_DATABASE_URI"]= "mysql+mysqldb://username:password@sql_instace_IP:3306/SQL_instancename?unix_socket=/cloudsql/projectid:us-central1:codingthunder"
-
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=True
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = params["prod_uri"]
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=True
 
 db.init_app(app)
 

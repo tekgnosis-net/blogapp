@@ -14,17 +14,26 @@ db = SQLAlchemy()
 
 app = Flask(__name__,template_folder='template')
 
-# Use environment variable for database URI if provided (for Docker)
+# Database configuration with environment variable priority
 db_uri = os.environ.get('DATABASE_URI')
 if db_uri:
+    # Use DATABASE_URI from environment (Docker, GCP, etc.)
     app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
+elif os.environ.get('CLOUD_SQL_CONNECTION_NAME'):
+    # GCP Cloud SQL via Unix socket
+    connection_name = os.environ.get('CLOUD_SQL_CONNECTION_NAME')
+    db_user = os.environ.get('DB_USER', 'root')
+    db_pass = os.environ.get('DB_PASS', '')
+    db_name = os.environ.get('DB_NAME', 'codingthunder')
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+mysqldb://{db_user}:{db_pass}@localhost/{db_name}?unix_socket=/cloudsql/{connection_name}"
 elif(local_server==True):
-    #Replace the ip_address and cloud instance and db name accordingly.
-    app.config["SQLALCHEMY_DATABASE_URI"]= "mysql+mysqldb://username:password@sql_instace_IP:3306/SQL_instancename?unix_socket=/cloudsql/projectid:us-central1:codingthunder"
+    # Local development fallback
+    app.config["SQLALCHEMY_DATABASE_URI"]= "mysql+mysqldb://root:@localhost/codingthunder"
 else:
+    # Use config.json prod_uri
     app.config['SQLALCHEMY_DATABASE_URI'] = params["prod_uri"]
 
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=True
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=False
 
 db.init_app(app)
 
@@ -79,11 +88,11 @@ def post_route(post_slug):
     post = Posts.query.filter_by(slug=post_slug).first()
     return render_template('post.html',params=params,post=post)
     
-#After first insertion , comment out the below line
-create_table()
+# Only create tables if explicitly requested (for initial setup)
+if os.environ.get('CREATE_TABLES', 'False').lower() == 'true':
+    create_table()
 
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 80))
     debug = os.environ.get('DEBUG', 'True').lower() == 'true'
     app.run(host='0.0.0.0', port=port, debug=debug, threaded=True)

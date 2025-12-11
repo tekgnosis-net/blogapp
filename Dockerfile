@@ -35,5 +35,6 @@ EXPOSE 5000
 ENV FLASK_APP=__init__.py
 ENV PYTHONUNBUFFERED=1
 
-# Run the application
-CMD ["python", "__init__.py"]
+# Run the application with Gunicorn for production
+# Can be overridden with docker run command for development
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "__init__:app"]

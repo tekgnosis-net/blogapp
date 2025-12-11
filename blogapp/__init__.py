@@ -77,5 +77,8 @@ def post_route(post_slug):
 create_table()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True, threaded=True)
+    import os
+    port = int(os.environ.get('PORT', 80))
+    debug = os.environ.get('DEBUG', 'True').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=debug, threaded=True)
 

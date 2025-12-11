@@ -52,6 +52,45 @@ python __init__.py
 
 The app will be available at `http://localhost:80`
 
+### Using Docker
+
+#### Quick Start with Docker Compose
+```bash
+# Start the application with MySQL database
+docker-compose up -d
+
+# View logs
+docker-compose logs -f web
+
+# Stop the application
+docker-compose down
+```
+
+The app will be available at `http://localhost:5000`
+
+#### Build and Run Docker Image Manually
+```bash
+# Build the image
+docker build -t blogapp:latest .
+
+# Run the container (requires external MySQL)
+docker run -d \
+  -p 5000:5000 \
+  -e PORT=5000 \
+  -e DEBUG=False \
+  --name blogapp \
+  blogapp:latest
+```
+
+#### Pull from GitHub Container Registry
+```bash
+# Pull the latest image
+docker pull ghcr.io/tekgnosis-net/blogapp:latest
+
+# Run the pulled image
+docker run -d -p 5000:5000 ghcr.io/tekgnosis-net/blogapp:latest
+```
+
 ## Project Structure
 
 ```
@@ -117,6 +156,24 @@ The app is configured for Google Cloud Platform deployment:
    ```
 
 3. Use GCP Secret Manager for production credentials instead of `config.json`
+
+## Docker Images
+
+Docker images are automatically built and pushed to GitHub Container Registry (GHCR) on every push to the repository.
+
+**Available tags:**
+- `latest` - Latest build from master branch
+- `master` - Latest build from master branch
+- `<branch-name>` - Latest build from specific branch
+- `v*` - Semantic version tags (e.g., v1.0.0)
+- `<branch>-<sha>` - Specific commit SHA
+
+**GitHub Actions Workflow:**
+The `.github/workflows/docker-build.yml` workflow automatically:
+- Builds Docker images on every push
+- Pushes images to `ghcr.io/tekgnosis-net/blogapp`
+- Tags images appropriately based on branch/tag
+- Uses Docker layer caching for faster builds
 
 ## Contributing
 

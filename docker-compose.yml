@@ -1,6 +1,7 @@
 services:
   web:
-    build: .
+    image: ghcr.io/tekgnosis-net/blogapp:latest
+    pull_policy: always
     ports:
       - "8080:5000"
     environment:
